@@ -2,8 +2,10 @@
 include('database.php');
 
 if(!isset($_SESSION['username']) && !isset($_SESSION['user_id'])){
-    echo "You don't have access to this page";
-    echo '<a href="login.php">Login</a>';  
+    echo '<div class="flex flex-col items-center justify-center mt-20">';
+    echo '<p class="text-red-600 text-lg font-semibold">You don\'t have access to this page</p>';
+    echo '<a href="login.php" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300">Login</a>';
+    echo '</div>';
     exit();
 } else {
     if(isset($_POST['addtask']))
