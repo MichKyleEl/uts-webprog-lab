@@ -61,7 +61,10 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <div>
                         <label class="block text-lg font-medium">Email</label>
-                        <input type="email" name="new_email" value="<?php echo isset($_SESSION['email']) ? $_SESSION['email'] : ''; ?>" class="w-full p-2 bg-white/10 border border-gray-300 rounded-lg text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-cyan-300"/>
+                        <input type="email" 
+                            name="new_email" 
+                            value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>"
+                            class="w-full p-2 bg-white/10 border border-gray-300 rounded-lg text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-cyan-300"/>
                     </div>
 
                     <div>
@@ -141,9 +144,9 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             />
                             <button type="submit" 
                                 name="applySearch" 
-                                class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 whitespace-nowrap"
+                                class="bg-yellow-500 text-white px-2 py-2 rounded-lg hover:bg-yellow-600 whitespace-nowrap"
                             >
-                                Search
+                            <i class='fas fa-search'></i>
                             </button>
                         </form>
                     </div>

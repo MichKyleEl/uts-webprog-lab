@@ -12,7 +12,7 @@
     session_start();
     
     function connectdatabase() {
-        return mysqli_connect("127.0.0.1:3306", "root", "", "uts_webprog");
+        return mysqli_connect("localhost", "root", "", "uts_webprog");
     }    
 
     function loggedin() {
@@ -49,28 +49,28 @@
     }
 
     function validuser($username, $password) {
-        $conn = connectdatabase();
-        $sql = "SELECT * FROM user_info WHERE username = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result && mysqli_num_rows($result) > 0) {
-            $row = mysqli_fetch_assoc($result);
-            $hashed_password = $row['password'];
+    $conn = connectdatabase();
+    $sql = "SELECT * FROM user_info WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
-             if (password_verify($password, $hashed_password)) {
- 
-                $_SESSION["username"] = $username;
-                $_SESSION["email"] = $row['email']; 
-                return true;
-            }
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $hashed_password = $row['password'];
+
+        if (password_verify($password, $hashed_password)) {
+            $_SESSION["username"] = $username;
+            $_SESSION["email"] = $row['email'];  // Store email in session
+            $_SESSION["user_id"] = $row['id'];   // Also store user_id for good measure
+            return true;
         }
-    
-        mysqli_close($conn);
-        return false;
     }
+
+    mysqli_close($conn);
+    return false;
+}
     
     function error() 
     {
@@ -246,35 +246,53 @@
             foreach ($tasks as $task) {
                 $taskId = $task["taskid"];
                 
-                echo "<div class='todo-item flex justify-between items-center mb-4 p-4 bg-gray-800 rounded-lg'>";
-                echo "<div class='flex items-center space-x-1'>";
-                echo "<input type='checkbox' class='largerCheckbox' name='check_list[]' value='" . $taskId . "'" . ($task['done'] ? ' checked' : '') . " onchange='handleCheckboxChange(this)'>";
+                // Main todo item container with improved mobile spacing
+                echo "<div class='todo-item flex justify-between items-center mb-2 p-2.5 bg-gray-800 rounded-lg shadow-sm'>";
                 
-                echo "<span id='task_" . $taskId . "' style='display: inline;'>" . htmlspecialchars($task["task"]) . "</span>";
+                // Left side with checkbox and task text
+                echo "<div class='flex items-center gap-2 flex-1 min-w-0'>";
+                echo "<input type='checkbox' class='w-5 h-5 accent-green-500 cursor-pointer' 
+                      name='check_list[]' value='" . $taskId . "'" . 
+                      ($task['done'] ? ' checked' : '') . " onchange='handleCheckboxChange(this)'>";
                 
-                echo "<div id='edit_form_" . $taskId . "' style='display: none;' class='inline-flex items-center'>";
-                echo "<input type='text' name='updated_task' value='" . htmlspecialchars($task["task"]) . "' class='bg-gray-700 text-white rounded px-2 py-1'>";
-                echo "<button type='button' onclick='saveEdit(" . $taskId . ")' class='bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 ml-2'>
-                        <i class='fas fa-save'></i>
+                // Task text with ellipsis for overflow
+                echo "<span id='task_" . $taskId . "' class='text-sm truncate max-w-[150px] sm:max-w-none'" . 
+                     ($task['done'] ? ' style="text-decoration: line-through;"' : '') . ">" . 
+                     htmlspecialchars($task["task"]) . "</span>";
+                
+                // Edit form with responsive sizing
+                echo "<div id='edit_form_" . $taskId . "' style='display: none;' 
+                      class='flex items-center gap-1 flex-1 min-w-0'>";
+                echo "<input type='text' maxlength='15' placeholder='Max 15 chars' 
+                      name='updated_task' value='" . htmlspecialchars($task["task"]) . "' 
+                      class='flex-1 min-w-0 bg-gray-700 text-white rounded px-2 py-1 text-sm'>";
+                echo "<button type='button' onclick='saveEdit(" . $taskId . ")' 
+                      class='bg-green-500 text-white p-1.5 rounded-lg hover:bg-green-600 text-sm'>
+                      <i class='fas fa-save'></i>
                       </button>";
-                echo "<button type='button' onclick='cancelEdit(" . $taskId . ")' class='bg-gray-500 text-white px-2 py-1 rounded-lg hover:bg-gray-600 ml-2'>
-                        <i class='fas fa-times'></i>
+                echo "<button type='button' onclick='cancelEdit(" . $taskId . ")' 
+                      class='bg-gray-500 text-white p-1.5 rounded-lg hover:bg-gray-600 text-sm'>
+                      <i class='fas fa-times'></i>
                       </button>";
                 echo "</div>";
                 echo "</div>";
-    
-                echo "<div class='flex space-x-1'>";
-                echo "<button type='button' onclick='toggleEdit(" . $taskId . ")' class='bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600'>
-                        <i class='fas fa-edit'></i>
+            
+                // Action buttons with consistent sizing
+                echo "<div class='flex gap-1 ml-2'>";
+                echo "<button type='button' onclick='toggleEdit(" . $taskId . ")' 
+                      class='bg-blue-500 text-white p-1.5 rounded-lg hover:bg-blue-600 text-sm'>
+                      <i class='fas fa-edit'></i>
                       </button>";
-                echo "<button type='button' onclick='openDeleteModal(" . $taskId . ")' class='bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600'>
-                        <i class='fas fa-trash'></i>
+                echo "<button type='button' onclick='openDeleteModal(" . $taskId . ")' 
+                      class='bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 text-sm'>
+                      <i class='fas fa-trash'></i>
                       </button>";
-                echo "</div>"; 
-    
+                echo "</div>";
+            
                 echo "</div>";
             }
-    
+
+            
             if (empty($tasks)) {
                 echo "<p>No tasks found.</p>";
             }
@@ -288,76 +306,97 @@
     
             // JavaScript
             echo "<script>
-            let changedTasks = new Set();
+    let changedTasks = new Set();
+
+    function handleCheckboxChange(checkbox) {
+    changedTasks.add(checkbox.value);
+}
+
+function toggleEdit(taskId) {
+    const taskSpan = document.getElementById('task_' + taskId);
+    const editForm = document.getElementById('edit_form_' + taskId);
     
-            function handleCheckboxChange(checkbox) {
-                changedTasks.add(checkbox.value);
-            }
+    if (taskSpan && editForm) {
+        taskSpan.style.display = 'none';
+        editForm.style.display = 'inline-flex';
+    }
+}
+
+function cancelEdit(taskId) {
+    const taskSpan = document.getElementById('task_' + taskId);
+    const editForm = document.getElementById('edit_form_' + taskId);
     
-            function saveChanges() {
-                const form = document.getElementById('taskForm');
-                const formData = new FormData(form);
-                formData.append('Save', '1');
+    if (taskSpan && editForm) {
+        taskSpan.style.display = 'inline';
+        editForm.style.display = 'none';
+    }
+}
+
+function saveEdit(taskId) {
+    const editForm = document.getElementById('edit_form_' + taskId);
+    const editInput = editForm.querySelector('input[name=\"updated_task\"]');
+    const taskSpan = document.getElementById('task_' + taskId);
     
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (response.ok) {
-                        changedTasks.clear();
-                        // Optionally show a success message
-                        alert('Changes saved successfully!');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error saving changes');
-                });
-            }
-    
-            function toggleEdit(taskId) {
-                const taskSpan = document.getElementById('task_' + taskId);
-                const editForm = document.getElementById('edit_form_' + taskId);
-                
-                if (taskSpan && editForm) {
-                    taskSpan.style.display = 'none';
-                    editForm.style.display = 'inline-flex';
-                }
-            }
-                
-            function cancelEdit(taskId) {
-                const taskSpan = document.getElementById('task_' + taskId);
-                const editForm = document.getElementById('edit_form_' + taskId);
-                
-                if (taskSpan && editForm) {
-                    taskSpan.style.display = 'inline';
-                    editForm.style.display = 'none';
-                }
-            }
-    
-            function openDeleteModal(taskId) {
-                document.getElementById('deleteModal').classList.remove('hidden');
-                document.getElementById('modalTaskId').value = taskId;
-            }
-    
-            function closeDeleteModal() {
-                document.getElementById('deleteModal').classList.add('hidden');
-            }
-    
-            document.addEventListener('click', function(event) {
-                const modal = document.getElementById('deleteModal');
-                if (event.target === modal) {
-                    closeDeleteModal();
-                }
-            });
-    
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape') {
-                    closeDeleteModal();
-                }
-            });
-            </script>";
+    if (!editInput || !taskSpan) return;
+
+    const formData = new FormData();
+    formData.append('updateTask', '1');
+    formData.append('task_id', taskId);
+    formData.append('updated_task', editInput.value);
+
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        taskSpan.textContent = editInput.value;
+        cancelEdit(taskId);
+        location.reload(); // Add page reload to ensure we get fresh data
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating task');
+    });
+}
+
+function saveChanges() {
+    const form = document.getElementById('taskForm');
+    const formData = new FormData(form);
+    formData.append('Save', '1');
+
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving changes');
+    });
+}
+
+function openDeleteModal(taskId) {
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('modalTaskId').value = taskId;
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            closeDeleteModal();
+        }
+    });
+    </script>";
+
     
         } else {
             echo "<p>User not found.</p>";

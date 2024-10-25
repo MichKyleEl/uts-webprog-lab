@@ -20,6 +20,7 @@ if(!$row){
     }else{
         $_SESSION['user_id'] = $row['id'];
         $_SESSION['username'] = $row['username'];
+        $_SESSION['email'] = $row['email'];
         header('location: index.php');
     }
 }
